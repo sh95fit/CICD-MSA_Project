@@ -1,0 +1,81 @@
+version: '3.9'
+
+networks:
+  cicd_net:
+    driver: bridge
+
+services:
+  front_nginx:
+    container_name: reverse_proxy_nginx
+    #image: nginx:1.23.2
+    build:
+      context: ./nginx/front
+      dockerfile: Dockerfile
+    restart: always
+    privileged: true  # fail2ban을 위해 추가
+    ports:
+      - "80:80" # back_nginx_frontend -> React
+      - "8080:8080" # back_nginx_backend -> FastAPI
+    volumes:
+      #- ./front/default.conf:/etc/nginx/conf.d/default.conf
+      #- ./front/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/front/default.conf:/usr/local/nginx/conf.d/default.conf
+      - ./nginx/front/nginx.conf:/usr/local/nginx/conf/nginx.conf
+      - ./nginx/front/modsecurity.conf:/usr/local/nginx/conf/modsecurity.conf
+      - ./nginx/front/modsec_includes.conf:/usr/local/nginx/conf/modsec_includes.conf
+      - ./nginx/front/crs-setup.conf:/usr/local/nginx/conf/rules/crs-setup.conf
+      - ./nginx/fail2ban/jail.conf:/etc/fail2ban/jail.conf
+      - ./nginx/fail2ban/jail.conf:/etc/fail2ban/jail.local
+      - ./nginx/fail2ban/filter.d/:/etc/fail2ban/filter.d/
+      - ./nginx/log/logs/:/usr/local/nginx/logs/
+      - ./nginx/log/log/:/var/log/
+    depends_on:
+      - back_nginx_frontend
+      - back_nginx_backend
+    networks:
+      - cicd_net
+
+  back_nginx_frontend:
+    image: nginx:1.23.2
+    container_name: back_nginx_frontend
+    restart: always
+    volumes:
+      - ./nginx/conf/fe_nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+    expose:
+      - "80"
+    networks:
+      - cicd_net
+
+  back_nginx_backend:
+    image: nginx:1.23.2
+    container_name: back_nginx_backend
+    restart: always
+    volumes:
+      - ./nginx/conf/be_nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    expose:
+      - "81"
+    networks:
+      - cicd_net
+
+  frontend:
+    build:
+      context: ./frontend/dashboard
+      dockerfile: Dockerfile
+    container_name: react_frontend
+    tty: true
+    volumes:
+      - ./frontend/dashboard/dist:/dist
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi_backend
+    tty: true
+    expose:
+      - "8080"
+    command: uvicorn main:app --host 0.0.0.0 --reload --port 8080
