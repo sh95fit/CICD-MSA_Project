@@ -1,5 +1,5 @@
 # 베이스 이미지 선정
-FROM node:20.10.0-alpine
+FROM node:20.10.0-alpine AS build
 
 # 작업 디렉토리 설정
 WORKDIR /app
