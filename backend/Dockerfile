@@ -1,11 +1,11 @@
 FROM python:latest
 
 # tzdata 설치
-RUN apk add --no-cache tzdata
+RUN apt-get update && apt-get install -y tzdata
 
 # 시간대 설정 (예: Asia/Seoul)
 ENV TZ=Asia/Seoul
-RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY . /src
 WORKDIR /src
