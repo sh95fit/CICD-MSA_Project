@@ -20,6 +20,14 @@ RUN apk add --update wget \
   zlib-dev \
   linux-headers
 
+# tzdata 설치
+RUN apk add --no-cache tzdata
+
+# 시간대 설정 (예: Asia/Seoul)
+ENV TZ=Asia/Seoul
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+
 RUN cd /tmp && git clone https://github.com/SpiderLabs/ModSecurity
 RUN cd /tmp/ModSecurity && git submodule init && git submodule update
 RUN cd /tmp/ModSecurity && ./build.sh && \

@@ -1,6 +1,13 @@
 # 베이스 이미지 선정
 FROM node:20.10.0-alpine AS build
 
+# tzdata 설치
+RUN apk add --no-cache tzdata
+
+# 시간대 설정 (예: Asia/Seoul)
+ENV TZ=Asia/Seoul
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # 작업 디렉토리 설정
 WORKDIR /app
 
