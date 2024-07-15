@@ -10,3 +10,5 @@ pipeline {
     }
   }
 }
+
+// Push 시 Jenkins 동작 테스트
