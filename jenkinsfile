@@ -1,0 +1,12 @@
+pipeline {
+  agent any
+  stage {
+    stage('Checkout') {
+      steps {
+        git branch: 'main',
+          credentialsId: 'sh95fit',
+          url: 'https://github.com/sh95fit/CICD-MSA_Project.git'
+      }
+    }
+  }
+}
