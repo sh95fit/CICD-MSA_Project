@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    REPO_URL = "https://github.com/sh95fit/CICD-MSA_Project.git"
+    REPO_URL = "https://github.com/sh95fit/CICD-MSA_Project"
     BRANCH = "main"
     REMOTE_PATH = "/home/cicd"
     SSH_CREDENTIALS_ID = "cicd"
@@ -38,8 +38,8 @@ pipeline {
                       )
                   ],
                   usePromotionTimestamp: false,
-                  alwaysPublishFromMaster: true,
-                  failOnError: true
+                  // alwaysPublishFromMaster: true,
+                  failOnError: true  // 전송 중 하나라도 실패 시 전체 실패
               )
           ])
         }
