@@ -31,8 +31,8 @@ pipeline {
               sh """
                 ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
                   cd ${REMOTE_PATH}
-                  git fetch origin ${BRANCH}
-                  git reset --hard origin/${BRANCH}
+                  git fetch CICD_MSA ${BRANCH}
+                  git reset --hard CICD_MSA/${BRANCH}
                 '
               """
             } else {
