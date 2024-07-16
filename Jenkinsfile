@@ -23,12 +23,26 @@ pipeline {
       steps {
         script {
           sshagent (credentials: [SSH_CREDENTIALS_ID]) {
+            // 존재 여부 체크
+            def directoryExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -d ${REMOTE_PATH} ] && echo true || echo false'", returnStdout: true).trim() == "true"
+
+            if (directoryExists) {
+              // 존재하는 경우
               sh """
-              ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
-                  rm -rf ${REMOTE_PATH}/* || exit 1
-                  git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
-              '
+                ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                  cd ${REMOTE_PATH}
+                  git fetch origin ${BRANCH}
+                  git reset --hard origin/${BRANCH}
+                '
               """
+            } else {
+              // 비어있는 경우
+              sh """
+                ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                  git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH}
+                '
+              """
+            }
           }
         }
       }
