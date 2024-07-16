@@ -91,7 +91,7 @@ pipeline {
               if (runningContainers == 0) {
                   echo "Stopping and removing existing docker-compose containers..."
                   // 컨테이너 정지 및 삭제
-                  sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans && docker image rm \$(docker images -q \${PROJECT_NAME}-* | uniq)'"
+                  sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans && docker image rm \$(docker images -q ${PROJECT_NAME}-* | uniq)'"
               } else {
                   echo "No running docker-compose containers found."
               }
