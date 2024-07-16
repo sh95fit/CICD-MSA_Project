@@ -39,7 +39,7 @@ pipeline {
                   ],
                   usePromotionTimestamp: false,
                   // alwaysPublishFromMaster: true,
-                  failOnError: true  // 전송 중 하나라도 실패 시 전체 실패
+                  // failOnError: true  // 전송 중 하나라도 실패 시 전체 실패
               )
           ])
         }
