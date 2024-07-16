@@ -23,26 +23,14 @@ pipeline {
       steps {
         script {
           // SSH 원격 접속 및 레포지토리 클론
-          sshPublisher(publishers: [
-            sshPublisherDesc(
-              configName: 'cicd',
-              transfers: [
-                sshTransfer(
-                  sourceFiles: '',
-                  execCommand: """
-                    cd ${REMOTE_PATH} || exit 1
-                    rm -rf ${REMOTE_PATH}/* || exit 1
-                    git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH}
-                  """,
-                  removePrefix: '',
-                  remoteDirectory: REMOTE_PATH
-                )
-              ],
-              usePromotionTimestamp: false,
-              alwaysPublishFromMaster: true,
-              failOnError: true
-            )
-          ])
+          sshagent (credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+            ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                rm -rf ${REMOTE_PATH}/* || exit 1
+                git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
+            '
+            """
+          }
         }
       }
     }
