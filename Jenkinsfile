@@ -78,30 +78,32 @@ pipeline {
     stage('Build with docker-compose') {
       steps {
         script {
-          // docker-compose 파일 유무 확인
-          def composeFileExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -f ${REMOTE_PATH}/${DOCKER_COMPOSE_FILE} ] && echo true || echo false'", returnStdout: true).trim() == 'true'
+          sshagent (credentials: [SSH_CREDENTIALS_ID]) {
+            // docker-compose 파일 유무 확인
+            def composeFileExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -f ${REMOTE_PATH}/${DOCKER_COMPOSE_FILE} ] && echo true || echo false'", returnStdout: true).trim() == 'true'
 
-          if (composeFileExists) {
-            // 동작 중인 컨테이너가 있는지 확인
-            def runningContainers = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose ps -q'", returnStatus: true)
+            if (composeFileExists) {
+              // 동작 중인 컨테이너가 있는지 확인
+              def runningContainers = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose ps -q'", returnStatus: true)
 
-            if (runningContainers == 0) {
-                echo "Stopping and removing existing docker-compose containers..."
-                // 컨테이너 정지 및 삭제
-                sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans'"
+              if (runningContainers == 0) {
+                  echo "Stopping and removing existing docker-compose containers..."
+                  // 컨테이너 정지 및 삭제
+                  sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans'"
+              } else {
+                  echo "No running docker-compose containers found."
+              }
+
+              // docker-compose를 빌드하고 시작
+              echo "Building and starting new docker-compose containers..."
+              sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose up -d'"
+
             } else {
-                echo "No running docker-compose containers found."
-            }
-
-             // docker-compose를 빌드하고 시작
-            echo "Building and starting new docker-compose containers..."
-            sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose up -d'"
-
-          } else {
-                echo "Error: ${DOCKER_COMPOSE_FILE} not found in ${REMOTE_PATH}"
-                currentBuild.result = 'FAILURE'
-                error "docker-compose file not found"
-            }
+                  echo "Error: ${DOCKER_COMPOSE_FILE} not found in ${REMOTE_PATH}"
+                  currentBuild.result = 'FAILURE'
+                  error "docker-compose file not found"
+              }
+          }
         }
       }
     }
