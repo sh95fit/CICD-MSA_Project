@@ -4,12 +4,16 @@ pipeline {
   environment {
     REPO_URL = "https://github.com/sh95fit/CICD-MSA_Project"
     BRANCH = "main"
+
     REMOTE_PATH = "/home/cicd"
     SSH_CREDENTIALS_ID = "cicd"
     REMOTE_USER = "cicd"
     REMOTE_HOST = "152.70.90.174"
+
     GIT_ORIGIN = "CICD_MSA"
     GIT_URL = "https://github.com/sh95fit/CICD-MSA_Project.git"
+
+    DOCKER_COMPOSE_FILE = 'docker-compose.yml'
   }
 
   stages {
@@ -66,9 +70,38 @@ pipeline {
                 // Initialize Git repository and clone
                 sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'mkdir -p ${REMOTE_PATH} && cd ${REMOTE_PATH} && git init && git branch -M main && git remote add ${GIT_ORIGIN} ${GIT_URL} && git fetch && git checkout ${GIT_ORIGIN}/main -f'"
             }
-
-
           }
+        }
+      }
+    }
+
+    stage('Build with docker-compose') {
+      steps {
+        script {
+          // docker-compose 파일 유무 확인
+          def composeFileExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -f ${REMOTE_PATH}/${DOCKER_COMPOSE_FILE} ] && echo true || echo false'", returnStdout: true).trim() == 'true'
+
+          if (composeFileExists) {
+            // 동작 중인 컨테이너가 있는지 확인
+            def runningContainers = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose ps -q'", returnStatus: true)
+
+            if (runningContainers == 0) {
+                echo "Stopping and removing existing docker-compose containers..."
+                // 컨테이너 정지 및 삭제
+                sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans'"
+            } else {
+                echo "No running docker-compose containers found."
+            }
+
+             // docker-compose를 빌드하고 시작
+            echo "Building and starting new docker-compose containers..."
+            sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose up -d'"
+
+          } else {
+                echo "Error: ${DOCKER_COMPOSE_FILE} not found in ${REMOTE_PATH}"
+                currentBuild.result = 'FAILURE'
+                error "docker-compose file not found"
+            }
         }
       }
     }
