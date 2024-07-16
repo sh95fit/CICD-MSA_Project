@@ -8,7 +8,7 @@ function App() {
 
   return (
     <>
-      <h1>Dashboard CICD Infra</h1>
+      <h1>Dashboard CICD Infra Test</h1>
       {/* <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

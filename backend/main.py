@@ -15,6 +15,7 @@ def main():
     <body>
         <h1>Welcome to the Dashboard</h1>
         <p>This is your dashboard page.</p>
+        <p>Update Test</p>
     </body>
     </html>
     """
