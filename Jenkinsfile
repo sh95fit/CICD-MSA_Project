@@ -22,39 +22,14 @@ pipeline {
     stage('Clone Repository') {
       steps {
         script {
-          // SSH 원격 접속 및 레포지토리 클론
-          // sshPublisher(publishers: [
-          //     sshPublisherDesc(
-          //         configName: SSH_CREDENTIALS_ID,
-          //         transfers: [
-          //             sshTransfer(
-          //                 execCommand: """
-          //                     cd ${REMOTE_PATH} || exit 1
-          //                     rm -rf ${REMOTE_PATH}/* || exit 1
-          //                     git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
-          //                 """,
-          //                 sourceFiles: '',
-          //                 removePrefix: ''
-          //             )
-          //         ],
-          //         usePromotionTimestamp: false,
-          //         // alwaysPublishFromMaster: true,
-          //         // failOnError: true  // 전송 중 하나라도 실패 시 전체 실패
-          //     )
-          // ])
-
-          def remoteCommand = "cd ${REMOTE_PATH} && git clone -b ${BRANCH} ${REPO_URL} ."
-
-          sshCommand remote: [
-            host: REMOTE_HOST,
-            user: REMOTE_USER,
-            port: 22,
-            passwordOrKey: [
-              credentialsId: SSH_CREDENTIALS_ID,
-              directEntry: ''
-            ]
-          ],
-          command: remoteCommand
+          sshagent (credentials: [SSH_CREDENTIALS_ID]) {
+              sh """
+              ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} '
+                  rm -rf ${REMOTE_PATH}/* || exit 1
+                  git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
+              '
+              """
+          }
         }
       }
     }
