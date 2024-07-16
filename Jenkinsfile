@@ -23,15 +23,25 @@ pipeline {
       steps {
         script {
           // SSH 원격 접속 및 레포지토리 클론
-          sshCommand remote: [
-              host: REMOTE_HOST,
-              user: REMOTE_USER,
-              credentialsId: SSH_CREDENTIALS_ID
-          ], command: """
-              cd ${REMOTE_PATH} || exit 1
-              rm -rf ${REMOTE_PATH}/* || exit 1
-              git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
-          """
+          sshPublisher(publishers: [
+              sshPublisherDesc(
+                  configName: SSH_CREDENTIALS_ID,
+                  transfers: [
+                      sshTransfer(
+                          execCommand: """
+                              cd ${REMOTE_PATH} || exit 1
+                              rm -rf ${REMOTE_PATH}/* || exit 1
+                              git clone -b ${BRANCH} ${REPO_URL} ${REMOTE_PATH} || exit 1
+                          """,
+                          sourceFiles: '',
+                          removePrefix: ''
+                      )
+                  ],
+                  usePromotionTimestamp: false,
+                  alwaysPublishFromMaster: true,
+                  failOnError: true
+              )
+          ])
         }
       }
     }
