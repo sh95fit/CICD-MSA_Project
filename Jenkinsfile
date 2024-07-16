@@ -49,42 +49,22 @@ pipeline {
             // }
 
             // Check if the directory exists on remote
-            def remoteDirExists = sshCommand(
-                remote: REMOTE_HOST,
-                user: REMOTE_USER,
-                command: "[ -d '${REMOTE_PATH}' ] && echo 'true' || echo 'false'"
-            ).trim() == 'true'
+            def remoteDirExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -d ${REMOTE_PATH} ] && echo true || echo false'", returnStdout: true).trim() == 'true'
 
             if (remoteDirExists) {
-                // Check if .git directory exists within REMOTE_PATH
-                def gitDirExists = sshCommand(
-                    remote: REMOTE_HOST,
-                    user: REMOTE_USER,
-                    command: "[ -d '${REMOTE_PATH}/.git' ] && echo 'true' || echo 'false'"
-                ).trim() == 'true'
+                // .git 파일 존재 유무 체크 함수
+                def gitDirExists = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} '[ -d ${REMOTE_PATH}/.git ] && echo true || echo false'", returnStdout: true).trim() == 'true'
 
                 if (gitDirExists) {
-                    // Perform git reset to update repository
-                    sshCommand(
-                        remote: REMOTE_HOST,
-                        user: REMOTE_USER,
-                        command: "cd '${REMOTE_PATH}' && git reset --hard HEAD"
-                    )
+                    // .git 파일이 존재하는 경우
+                    sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && git reset --hard HEAD'"
                 } else {
-                    // Initialize Git repository and clone
-                    sshCommand(
-                        remote: REMOTE_HOST,
-                        user: REMOTE_USER,
-                        command: "cd '${REMOTE_PATH}' && git init && git branch -M main && git remote add '${GIT_ORIGIN} '${GIT_URL}' && git fetch && git checkout '${GIT_ORIGIN}'/main -f"
-                    )
+                    // .git 파일이 존재하지 않는 경우  git init 후 clone
+                    sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && git init && git branch -M main && git remote add ${GIT_ORIGIN} ${GIT_URL} && git fetch && git checkout ${GIT_ORIGIN}/main -f'"
                 }
             } else {
                 // Initialize Git repository and clone
-                sshCommand(
-                    remote: REMOTE_HOST,
-                    user: REMOTE_USER,
-                    command: "mkdir -p '${REMOTE_PATH}' && cd '${REMOTE_PATH}' && git init && git branch -M main && git remote add '${GIT_ORIGIN} '${GIT_URL}' && git fetch && git checkout '${GIT_ORIGIN}'/main -f"
-                )
+                sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'mkdir -p ${REMOTE_PATH} && cd ${REMOTE_PATH} && git init && git branch -M main && git remote add ${GIT_ORIGIN} ${GIT_URL} && git fetch && git checkout ${GIT_ORIGIN}/main -f'"
             }
 
 
