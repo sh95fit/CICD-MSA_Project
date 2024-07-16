@@ -63,7 +63,7 @@ pipeline {
 
                 if (gitDirExists) {
                     // .git 파일이 존재하는 경우
-                    sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && git reset --hard HEAD'"
+                    sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && git reset --hard HEAD && git pull ${GIT_ORIGIN} ${GIT_URL}'"
                 } else {
                     // .git 파일이 존재하지 않는 경우  git init 후 clone
                     sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && git init && git branch -M main && git remote add ${GIT_ORIGIN} ${GIT_URL} && git fetch && git checkout ${GIT_ORIGIN}/main -f'"
