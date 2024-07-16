@@ -88,7 +88,7 @@ pipeline {
               // 동작 중인 컨테이너가 있는지 확인
               def runningContainers = sh(script: "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose ps -q'", returnStatus: true)
 
-              if (runningContainers == 0) {
+              if (runningContainers == 1) {
                   echo "Stopping and removing existing docker-compose containers..."
                   // 컨테이너 정지 및 삭제
                   sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose down -v --remove-orphans && docker image rm \$(docker images -q ${PROJECT_NAME}-* | uniq)'"
