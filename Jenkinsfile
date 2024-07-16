@@ -45,28 +45,16 @@ pipeline {
 
           def remoteCommand = "cd ${REMOTE_PATH} && git clone -b ${BRANCH} ${REPO_URL} ."
 
-          sshPublisher(
-              publishers: [
-                  sshPublisherDesc(
-                      configName: "SSH 설정",
-                      transfers: [
-                          sshTransfer(
-                              execCommand: remoteCommand,
-                              remoteDirectory: "${REMOTE_PATH}",
-                              ...
-                          )
-                      ],
-                      sshServer: [
-                          sshServer(
-                              credentialsId: SSH_CREDENTIALS_ID,
-                              hostname: REMOTE_HOST,
-                              ...
-                          )
-                      ]
-                  )
-              ]
-          ).publish()
-
+          sshCommand remote: [
+            host: REMOTE_HOST,
+            user: REMOTE_USER,
+            port: 22,
+            passwordOrKey: [
+              credentialsId: SSH_CREDENTIALS_ID,
+              directEntry: ''
+            ]
+          ],
+          command: remoteCommand
         }
       }
     }
