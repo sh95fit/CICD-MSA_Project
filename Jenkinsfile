@@ -98,7 +98,7 @@ pipeline {
 
               // docker-compose를 빌드하고 시작
               echo "Building and starting new docker-compose containers..."
-              sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose up -d'"
+              sh "ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${REMOTE_PATH} && docker-compose up --build -d'"
 
             } else {
                   echo "Error: ${DOCKER_COMPOSE_FILE} not found in ${REMOTE_PATH}"
